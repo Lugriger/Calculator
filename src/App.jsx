@@ -1,80 +1,74 @@
-
-import {  useState, useEffect } from 'react'
-
+import { useState, useEffect, useCallback } from 'react'
 import { evaluate } from 'mathjs'
 
 function App() {
-
   const [display, setDisplay] = useState('0')
-  const [justEvaluated, setJustEvaluated] = useState(false);
+  const [justEvaluated, setJustEvaluated] = useState(false)
 
-  const buttons = [
-    "7","8","9",
-    "4","5","6",
-    "1","2","3",
-    
-  ]
-  
-  const handleClick = (value) => {
+  const buttons = ['7', '8', '9', '4', '5', '6', '1', '2', '3']
+
+  const handleClick = useCallback((value) => {
     setDisplay((prev) => {
-      const isNumber = /[0-9.]/.test(value);
-      const isOperator = /[+\-*/]/.test(value);
-      const lastCharacter = prev.slice(-1);
-
+      if (prev.length >= 39) return prev
+      const isNumber = /[0-9.]/.test(value)
+      const isOperator = /[+\-*/]/.test(value)
+      const lastCharacter = prev.slice(-1)
 
       if (justEvaluated && isNumber) {
-        setJustEvaluated(false);
-        return value;
+        setJustEvaluated(false)
+        return value
       }
-
       if (justEvaluated && !isNumber) {
-        setJustEvaluated(false);
-        return prev + value;
+        setJustEvaluated(false)
+        return prev + value
       }
       if (justEvaluated && isOperator) {
-        setJustEvaluated(false);
-        return prev + value;
+        setJustEvaluated(false)
+        return prev + value
       }
 
       if (prev === '0' && isNumber) {
-        return value;
+        return value
       }
-      if (isOperator && /[+\-*/]/.test(lastCharacter)){
-        return prev.slice(0, -1);
+      if (isOperator && /[+\-*/]/.test(lastCharacter)) {
+        return prev.slice(0, -1) + value
       }
-      if (value ==='.') {
-        const lastNumber = prev.split(/[+\-*/]/).pop();
+      if (value === '.') {
+        const lastNumber = prev.split(/[+\-*/]/).pop()
         if (lastNumber.includes('.')) {
-          return prev;}
+          return prev
+        }
       }
 
-      return prev + value;
+      return prev + value
     })
-  }
+  }, [justEvaluated])
 
-  const handleEnter = () => {
+  const handleEnter = useCallback(() => {
     try {
-      const result = evaluate(display);
-      setDisplay(result.toString());
-      setJustEvaluated(true);
-    } catch{
-      setDisplay("Error")
-     
+      const result = evaluate(display)
+      setDisplay(result.toString())
+    } catch {
+      setDisplay('Error')
     }
-    setJustEvaluated(true);
-  }
+    setJustEvaluated(true)
+  }, [display])
+
   const handleClear = () => {
-    setDisplay("0");
+    setDisplay('0')
   }
 
   const handleBackspace = () => {
-    setDisplay(prev => prev.slice(0, -1))
+    setDisplay((prev) => {
+      const newDisplay = prev.slice(0, -1)
+      return newDisplay === '' ? '0' : newDisplay
+    })
   }
-  
 
-  const handleKeyDown = (e) => {
-    const {key} = e;
-      if ( /[0-9.]/.test(key)) {
+  const handleKeyDown = useCallback(
+    (e) => {
+      const { key } = e
+      if (/[0-9.]/.test(key)) {
         handleClick(key)
       } else if (/[+\-*/]/.test(key)) {
         handleClick(key)
@@ -85,57 +79,52 @@ function App() {
       } else if (key === 'Backspace' || key === 'Delete') {
         handleBackspace()
       }
-  }
-
-  
-
+    },
+    [handleClick, handleEnter]
+  )
 
   useEffect(() => {
     document.addEventListener('keydown', handleKeyDown)
     return () => document.removeEventListener('keydown', handleKeyDown)
-  })
+  }, [handleKeyDown])
 
-  return(
-    <>
-      <div className="flex items-center min-h-screen justify-center flex-col  bg-amber-400 to-20% bg-gradient-to-tl  to-blue-400/80">
-        <div className="border-black-400 border-4 rounded shadow-xl shadow-indigo-900">
-          <div className=" text-right flex backdrop-brightness-75 items-end justify-end border-b-4 font-bold border-black-400 w-96 h-40 text-4xl">
-            <div className=' w-full text-right break-words text-gray-900'>
-              {display}
-            </div>
-            
-          </div>
-          <div className="flex justify-center w-96 h-96 ">
-            <div className="bg-black w-full h-full">
+  return (
+    <div className="min-h-screen bg-gradient-to-tl from-amber-400 to-blue-400/80 flex items-center justify-center p-4">
+      <div className="border-4 border-black rounded shadow-xl shadow-indigo-900 w-full max-w-md">
+        {/* Display */}
+        <div className="bg-amber-200/50 text-right p-4 font-bold text-4xl sm:text-5xl border-b-4 border-black h-24 sm:h-32 overflow-x-auto">
+          {display}
+        </div>
+
+        {/* Keypad */}
+        <div className="bg-black grid grid-cols-4 grid-rows-5 gap-2 p-2 sm:p-4">
+          {/* First Row */}
+          <button className="text-white text-xl sm:text-2xl border border-white p-2 sm:p-4 hover:bg-blue-400 active:bg-blue-400 focus:outline-none transition-all duration-300 rounded" onClick={handleClear}>C</button>
+          <button className="text-white text-xl sm:text-2xl border border-white p-2 sm:p-4 hover:bg-blue-400 active:bg-blue-400 focus:outline-none transition-all duration-300 rounded" onClick={() => handleClick('/')}>/</button>
+          <button className="text-white text-xl sm:text-2xl border border-white p-2 sm:p-4 hover:bg-blue-400 active:bg-blue-400 focus:outline-none transition-all duration-300 rounded" onClick={() => handleClick('*')}>*</button>
+          <button className="text-white text-xl sm:text-2xl border border-white p-2 sm:p-4 hover:bg-blue-400 active:bg-blue-400 focus:outline-none transition-all duration-300 rounded" onClick={() => handleClick('-')}>-</button>
+
+          {/* Number buttons */}
+          {buttons.map((button, index) => (
+            <button key={index} className="text-white text-xl sm:text-2xl border border-white p-2 sm:p-4 hover:bg-blue-400 active:bg-blue-400 focus:outline-none transition-all duration-300 rounded" onClick={() => handleClick(button)}>
+              {button}
+            </button>
+          ))}
+
+          <button className="text-white text-xl sm:text-2xl border border-white p-2 sm:p-4 hover:bg-blue-400 active:bg-blue-400 focus:outline-none transition-all duration-300 rounded col-span-2" 
+              onClick={() => handleClick('0')}>0</button>
+          <button className="text-white text-xl sm:text-2xl border border-white p-2 sm:p-4 hover:bg-blue-400 active:bg-blue-400 focus:outline-none transition-all duration-300 rounded" 
               
-              <div className="grid grid-cols-4 grid-rows-5 h-full">
-                  
-                  <button className="text-white border  hover:bg-blue-400" onClick={(handleClear)}>C</button>
-                  <button className="text-white border  hover:bg-blue-400 " onClick={() => handleClick("/")}>/</button>
-                  <button className='text-white border  hover:bg-blue-400' onClick={() => handleClick("*")}>*</button>
-                  <button className='text-white border  hover:bg-blue-400' onClick={() => handleClick("-")}>-</button>
-                
-                  
-              {buttons.map((button, index)=> (
-                
-                  <button key={index} className="text-white border hover:bg-blue-400" onClick={() => handleClick(button)}>{button}</button>
-                
-                
-              ))}
-                  <button className='text-white border  hover:bg-blue-400 col-span-2 row-start-5' onClick={() => handleClick('0')}>0</button>
-                  <button className='text-white border  hover:bg-blue-400 row-start-5' onClick={() => handleClick('.')}>.</button>
-                  <button className="text-white border  hover:bg-blue-400 row-span-3 col-start-4" onClick={(handleEnter)}>Enter</button>
-                  <button className="text-white border  hover:bg-blue-400 row-start-2 col-start-4 row-span-2" onClick={() => handleClick('+')}>+</button>
-              </div>
+                  onClick={() => handleClick('.')}>.</button>
 
-            </div>
-          </div>
-          </div>
-          
+          {/* Enter and Plus */}
+          <button className=" row-start-2 col-start-4 row-span-2 h-full text-white text-xl sm:text-2xl border border-white p-2 sm:p-4 hover:bg-blue-400 active:bg-blue-400 focus:outline-none transition-all duration-300 rounded"
+              onClick={() => handleClick('+')}>+</button>
+          <button className="row-span-2 row-start-4 col-start-4 text-white text-xl sm:text-2xl border border-white p-2 sm:p-4 hover:bg-blue-400 active:bg-blue-400 focus:outline-none transition-all duration-300 rounded w-full h-full" 
+              onClick={handleEnter}>Enter</button>
+        </div>
       </div>
-      
-      
-    </>
+    </div>
   )
 }
 
