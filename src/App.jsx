@@ -92,8 +92,11 @@ function App() {
     <div className="min-h-screen bg-gradient-to-tl from-amber-400 to-blue-400/80 flex items-center justify-center p-4">
       <div className="border-4 border-black rounded shadow-xl shadow-indigo-900 w-full max-w-md">
         {/* Display */}
-        <div className="bg-amber-200/50 text-right p-4 font-bold text-4xl sm:text-5xl border-b-4 border-black h-24 sm:h-32 overflow-x-auto">
-          {display}
+        <div className="flex items-end justify-end bg-amber-200/50 text-right p-4 font-bold text-3xl sm:text-5xl border-b-4 border-black h-24 sm:h-40 break-words overflow-x-auto ">
+          <div className='w-full text-right'>
+            {display}
+          </div>
+            
         </div>
 
         {/* Keypad */}
